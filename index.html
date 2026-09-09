@@ -1,0 +1,384 @@
+HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perícia Ambiental em Ação — Painel Colaborativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-paper: #F1ECDF;
+      --text-ink: #1B1B18;
+      --accent-green: #274029;
+      --accent-gold: #C98A2C;
+      --border-dark: #333333;
+      --danger-red: #8B2E2E;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-paper);
+      color: var(--text-ink);
+      margin: 0;
+      padding: 20px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--border-dark);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Space Mono', monospace;
+      margin: 0 0 10px 0;
+    }
+
+    nav.tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      font-family: 'Space Mono', monospace;
+      padding: 10px 16px;
+      border: 2px solid var(--border-dark);
+      background: #E2DCCB;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-green);
+      color: #FFF;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-dark);
+      background: #FFF;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+
+    textarea { height: 100px; resize: vertical; }
+
+    button.btn-submit {
+      font-family: 'Space Mono', monospace;
+      background: var(--accent-gold);
+      color: #000;
+      border: 2px solid var(--border-dark);
+      padding: 12px 24px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    button.btn-submit:hover {
+      opacity: 0.9;
+    }
+
+    /* Grid do Painel Geral */
+    .grid-cases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .card-case {
+      background: #FFF;
+      border: 2px solid var(--border-dark);
+      padding: 15px;
+      box-shadow: 4px 4px 0px var(--border-dark);
+    }
+
+    .card-case.pending {
+      border-style: dashed;
+      background: #FAF7F0;
+      opacity: 0.8;
+    }
+
+    .badge {
+      font-family: 'Space Mono', monospace;
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: white;
+      background: var(--accent-green);
+      margin-bottom: 8px;
+    }
+
+    .badge.pending { background: var(--danger-red); }
+
+    .reset-container {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #CCC;
+      text-align: right;
+    }
+
+    .btn-reset {
+      font-family: 'Space Mono', monospace;
+      background: transparent;
+      color: var(--danger-red);
+      border: 1px solid var(--danger-red);
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>PERÍCIA AMBIENTAL EM AÇÃO</h1>
+    <p>Curso de Geografia (Bacharelado) — Painel Colaborativo em Tempo Real</p>
+  </header>
+
+  <!-- Navegação por Abas -->
+  <nav class="tabs">
+    <button class="tab-btn active" onclick="switchTab('painel', event)">📊 QUADRO GERAL (PROJETOR)</button>
+    <button class="tab-btn" onclick="switchTab('ficha1', event)">Ficha 1</button>
+    <button class="tab-btn" onclick="switchTab('ficha2', event)">Ficha 2</button>
+    <button class="tab-btn" onclick="switchTab('ficha3', event)">Ficha 3</button>
+    <button class="tab-btn" onclick="switchTab('ficha4', event)">Ficha 4</button>
+    <button class="tab-btn" onclick="switchTab('ficha5', event)">Ficha 5</button>
+  </nav>
+
+  <!-- Painel Geral (Visão Coletiva) -->
+  <section id="panel-painel" class="panel active">
+    <h2>SÍNTESE DOS CASOS — TEMPO REAL</h2>
+    <div class="grid-cases" id="grid-container">
+      <!-- Cards gerados dinamicamente -->
+    </div>
+
+    <h2>SÍNTESE FINAL DA TURMA</h2>
+    <div class="form-group">
+      <label for="sintese-coletiva">Definição coletiva construída pela turma:</label>
+      <textarea id="sintese-coletiva" placeholder="Digite aqui a síntese final elaborada com a turma..."></textarea>
+      <button type="button" class="btn-submit" onclick="salvarSintese()">💾 SALVAR SÍNTESE</button>
+    </div>
+
+    <div class="reset-container">
+      <button class="btn-reset" onclick="zerarPainel()">⚠️ Limpar/Zerar Dados do Painel</button>
+    </div>
+  </section>
+
+  <!-- Container onde os formulários das fichas 1 a 5 serão renderizados -->
+  <div id="forms-container"></div>
+
+  <!-- Template Base para os Formulários das Fichas -->
+  <template id="tpl-ficha">
+    <div class="case-form">
+      <h2 class="title-case"></h2>
+
+      <form onsubmit="salvarFicha(event, this)">
+        <input type="hidden" name="fichaId">
+        
+        <div class="form-group">
+          <label>Grupo / Integrantes:</label>
+          <input type="text" name="grupo" required placeholder="Ex: Grupo 1 - Maria, João e Pedro">
+        </div>
+
+        <div class="form-group">
+          <label>1. CONCEITO — O que é Perícia Ambiental e por que se aplica a este caso?</label>
+          <textarea name="conceito" required placeholder=""></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>2. ORIGEM — Qual foi o fato gerador/conflito que motivou a perícia?</label>
+          <textarea name="origem" required placeholder=""></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>3. OBJETO DE ESTUDO — O que a perícia vai investigar e o que se pretende comprovar?</label>
+          <textarea name="objeto" required placeholder=""></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>4. PROFISSIONAIS ENVOLVIDOS — Quais profissionais atuam e qual o papel de cada um?</label>
+          <textarea name="profissionais" required placeholder=""></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">💾 SALVAR</button>
+      </form>
+    </div>
+  </template>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script>
+    // IMPORTANTE: Substitua as credenciais abaixo pelas do seu console do Firebase
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY_REAL",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "SUA_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Estrutura das 5 fichas
+    const casos = {
+      ficha1: { titulo: "FICHA 1" },
+      ficha2: { titulo: "FICHA 2" },
+      ficha3: { titulo: "FICHA 3" },
+      ficha4: { titulo: "FICHA 4" },
+      ficha5: { titulo: "FICHA 5" }
+    };
+
+    // Renderizar formulários
+    const formsContainer = document.getElementById('forms-container');
+    const tpl = document.getElementById('tpl-ficha').content;
+
+    Object.keys(casos).forEach(id => {
+      const section = document.createElement('section');
+      section.id = `panel-${id}`;
+      section.className = 'panel';
+      
+      const clone = document.importNode(tpl, true);
+      clone.querySelector('.title-case').textContent = casos[id].titulo;
+      clone.querySelector('input[name="fichaId"]').value = id;
+      
+      section.appendChild(clone);
+      formsContainer.appendChild(section);
+    });
+
+    // Controle de Abas
+    function switchTab(tabId, evt) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(`panel-${tabId}`).classList.add('active');
+      if (evt) {
+        evt.target.classList.add('active');
+      } else {
+        // Ativa o botão da aba visualmente caso troque via programa
+        const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+        if (btn) btn.classList.add('active');
+      }
+    }
+
+    // Salvar Ficha digitada pelo aluno
+    function salvarFicha(e, form) {
+      e.preventDefault();
+      const id = form.fichaId.value;
+      const data = {
+        grupo: form.grupo.value,
+        conceito: form.conceito.value,
+        origem: form.origem.value,
+        objeto: form.objeto.value,
+        profissionais: form.profissionais.value,
+        updatedAt: new Date().toISOString()
+      };
+
+      db.ref(`fichas/${id}`).set(data)
+        .then(() => {
+          alert("Respostas salvas com sucesso! O Quadro Geral foi atualizado.");
+          switchTab('painel');
+        })
+        .catch(err => {
+          alert("Erro ao salvar: Verifique a conexão ou as regras de permissão do Firebase. Detalhes: " + err.message);
+        });
+    }
+
+    // Salvar Síntese Final (Quadro Geral)
+    function salvarSintese() {
+      const val = document.getElementById('sintese-coletiva').value;
+      db.ref('sinteseFinal').set(val)
+        .then(() => alert("Síntese final salva com sucesso!"))
+        .catch(err => alert("Erro ao salvar a síntese: " + err.message));
+    }
+
+    // Zerar dados do painel
+    function zerarPainel() {
+      if (confirm("Tem certeza de que deseja apagar todas as respostas enviadas e limpar o painel?")) {
+        db.ref('fichas').remove();
+        db.ref('sinteseFinal').remove();
+        alert("Painel limpo com sucesso!");
+      }
+    }
+
+    // Escuta em tempo real do Firebase (Sincroniza todas as telas e preenche formulários)
+    db.ref('fichas').on('value', (snapshot) => {
+      const data = snapshot.val() || {};
+      const grid = document.getElementById('grid-container');
+      grid.innerHTML = '';
+
+      Object.keys(casos).forEach(id => {
+        const item = data[id];
+        const card = document.createElement('div');
+        
+        // Atualiza formulários das fichas para quem estiver com ela aberta
+        const form = document.querySelector(`#panel-${id} form`);
+        if (form && item) {
+          if (document.activeElement.form !== form) { // Evita sobrescrever enquanto o aluno digita
+            form.grupo.value = item.grupo || '';
+            form.conceito.value = item.conceito || '';
+            form.origem.value = item.origem || '';
+            form.objeto.value = item.objeto || '';
+            form.profissionais.value = item.profissionais || '';
+          }
+        }
+        
+        if (item && item.grupo) {
+          card.className = 'card-case';
+          card.innerHTML = `
+            <span class="badge">CONCLUÍDO</span>
+            <h3>${casos[id].titulo}</h3>
+            <p><strong>Grupo:</strong> ${item.grupo}</p>
+            <p><strong>1. Conceito:</strong> ${item.conceito}</p>
+            <p><strong>2. Origem:</strong> ${item.origem}</p>
+            <p><strong>3. Objeto:</strong> ${item.objeto}</p>
+            <p><strong>4. Profissionais:</strong> ${item.profissionais}</p>
+          `;
+        } else {
+          card.className = 'card-case pending';
+          card.innerHTML = `
+            <span class="badge pending">PENDENTE</span>
+            <h3>${casos[id].titulo}</h3>
+            <p style="color: #666; font-style: italic;">Aguardando preenchimento do grupo...</p>
+          `;
+        }
+        grid.appendChild(card);
+      });
+    });
+
+    // Sincroniza o campo da síntese coletiva em tempo real
+    db.ref('sinteseFinal').on('value', (snapshot) => {
+      const val = snapshot.val() || '';
+      const campo = document.getElementById('sintese-coletiva');
+      if (document.activeElement !== campo) {
+        campo.value = val;
+      }
+    });
+  </script>
+</body>
+</html>
